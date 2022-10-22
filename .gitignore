@@ -1,0 +1,6 @@
+/target
+/export
+/mirror
+
+# Idea IDEs
+.idea/

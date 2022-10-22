@@ -1,0 +1,26 @@
+services:
+  sb-mirror:
+    image: mchangrh/sb-mirror:latest
+    container_name: sb-mirror
+    volumes:
+      - ./mirror:/mirror
+      - ./export:/export
+    ports:
+      - 873:873
+    environment:
+      - MIRROR=TRUE
+      - MIRROR_URL=mirror.sb.mchang.xyz
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-sb-mirror
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./mirror:/mirror
+    environment:
+      - POSTGRES_DB=sponsorblock
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_USER=sponsorblock
+volumes:
+  postgres_data: null

@@ -1,0 +1,21 @@
+[package]
+edition = "2021"
+name = "sponsorblock-mirror"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+csv = "1.1.6"
+diesel = {version = "2.0.2", features = ["postgres"]}
+diesel_logger = "0.2.0"
+diesel_migrations = "2.0.0"
+lazy_static = "1.4.0"
+num_cpus = "1.13.1"
+regex = "1.6.0"
+reqwest = {version = "0.11.12", features = ["json", "rustls-tls", "gzip", "brotli"]}
+rocket = {git = "https://github.com/SergioBenitez/Rocket"}
+rocket_sync_db_pools = {git = "https://github.com/SergioBenitez/Rocket", features = ["diesel_postgres_pool"]}
+serde = {version = "1.0.145", features = ["derive"]}
+serde_json = "1.0.86"
+tokio = {version = "1", features = ["full"]}
