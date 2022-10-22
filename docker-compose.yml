@@ -10,11 +10,12 @@ services:
     environment:
       - MIRROR=TRUE
       - MIRROR_URL=mirror.sb.mchang.xyz
+    restart: unless-stopped
   postgres:
     image: postgres:15-alpine
     container_name: postgres-sb-mirror
-    ports:
-      - 5432:5432
+    #    ports:
+    #      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./mirror:/mirror
@@ -22,5 +23,14 @@ services:
       - POSTGRES_DB=sponsorblock
       - POSTGRES_PASSWORD=password123
       - POSTGRES_USER=sponsorblock
+    restart: unless-stopped
+  sponsorblock-mirror:
+    image: 1337kavin/sponsorblock-mirror:latest
+    container_name: sponsorblock-mirror
+    volumes:
+      - ./mirror:/app/mirror
+    ports:
+      - 8000:8000
+    restart: unless-stopped
 volumes:
   postgres_data: null

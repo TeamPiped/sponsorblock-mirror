@@ -5,4 +5,4 @@ address = "0.0.0.0"
 sponsorblock = { url = "postgresql://sponsorblock:password123@localhost" }
 
 [release.databases]
-sponsorblock = { url = "postgresql://sponsorblock:password123@sponsorblock" }
+sponsorblock = { url = "postgresql://sponsorblock:password123@postgres" }

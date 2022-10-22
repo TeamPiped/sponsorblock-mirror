@@ -6,7 +6,6 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-csv = "1.1.6"
 diesel = {version = "2.0.2", features = ["postgres"]}
 diesel_logger = "0.2.0"
 diesel_migrations = "2.0.0"
