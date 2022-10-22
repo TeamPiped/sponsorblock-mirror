@@ -2,7 +2,6 @@
 extern crate rocket;
 
 use std::path::Path;
-use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime};
 
@@ -41,39 +40,6 @@ async fn run_migrations(rocket: Rocket<Build>) -> Rocket<Build> {
 
 static mut LAST_UPDATE: Option<SystemTime> = None;
 
-// async fn import_db(conn: Rocket<Orbit>) -> _ {
-//     let path = Path::new("mirror/sponsorTimes.csv");
-//
-//     loop {
-//         let last_update = unsafe { LAST_UPDATE };
-//
-//         // see if file exists
-//         if path.exists() && (last_update.is_none() || last_update.unwrap().elapsed().unwrap_or_default().as_secs() > 60) {
-//
-//             // Check last modified time
-//             let last_modified = path.metadata().unwrap().modified().unwrap();
-//
-//             // Check if file was modified since last update
-//             if last_update.is_none() || last_modified > last_update.unwrap() {
-//
-//                 // Use COPY FROM to import the CSV file
-//                 let start = Instant::now();
-//                 println!("Importing database...");
-//                 conn.batch_execute("COPY sponsorblock FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER;")
-//                     .expect("Failed to import database");
-//                 println!("Imported database in {}ms", start.elapsed().as_millis());
-//
-//                 unsafe {
-//                     LAST_UPDATE = Some(last_modified);
-//                 }
-//             }
-//
-//             sleep(Duration::from_secs(60));
-//         }
-//         sleep(Duration::from_secs(30));
-//     }
-// }
-
 #[launch]
 fn rocket() -> Rocket<Build> {
     rocket::build()
@@ -106,8 +72,10 @@ fn rocket() -> Rocket<Build> {
                                 println!("Importing database...");
                                 // Execute a query of some kind
                                 db.run(move |c| {
-                                    c.batch_execute("BEGIN TRANSACTION; TRUNCATE \"sponsorTimes\"; COPY \"sponsorTimes\" FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER; COMMIT;")
-                                        .expect("Failed to import database");
+                                    let result = c.batch_execute("BEGIN TRANSACTION; DROP TABLE IF EXISTS \"sponsorTimesTemp\"; CREATE UNLOGGED TABLE \"sponsorTimesTemp\"(LIKE \"sponsorTimes\" INCLUDING defaults INCLUDING constraints INCLUDING indexes); COPY \"sponsorTimesTemp\" FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER; DROP TABLE \"sponsorTimes\"; ALTER TABLE \"sponsorTimesTemp\" RENAME TO \"sponsorTimes\"; COMMIT;");
+                                    if result.is_err() {
+                                        eprintln!("Failed to import database: {}", result.err().unwrap());
+                                    }
                                 }).await;
                                 println!("Imported database in {}ms", start.elapsed().as_millis());
 
