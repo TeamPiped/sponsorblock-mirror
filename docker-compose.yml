@@ -9,7 +9,7 @@ services:
       - 873:873
     environment:
       - MIRROR=TRUE
-      - MIRROR_URL=mirror.sb.mchang.xyz
+      - MIRROR_URL=sponsorblock.kavin.rocks
     restart: unless-stopped
   postgres:
     image: postgres:15-alpine
