@@ -72,7 +72,7 @@ fn rocket() -> Rocket<Build> {
                                 println!("Importing database...");
                                 // Execute a query of some kind
                                 db.run(move |c| {
-                                    let result = c.batch_execute("BEGIN TRANSACTION; DROP TABLE IF EXISTS \"sponsorTimesTemp\"; CREATE UNLOGGED TABLE \"sponsorTimesTemp\"(LIKE \"sponsorTimes\" INCLUDING defaults INCLUDING constraints INCLUDING indexes); COPY \"sponsorTimesTemp\" FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER; DROP TABLE \"sponsorTimes\"; ALTER TABLE \"sponsorTimesTemp\" RENAME TO \"sponsorTimes\"; COMMIT;");
+                                    let result = c.batch_execute("BEGIN TRANSACTION; DROP TABLE IF EXISTS \"sponsorTimesTemp\"; CREATE UNLOGGED TABLE \"sponsorTimesTemp\"(LIKE \"sponsorTimes\" INCLUDING defaults INCLUDING constraints INCLUDING indexes); COPY \"sponsorTimesTemp\" FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER; DROP TABLE \"sponsorTimes\"; ALTER TABLE \"sponsorTimesTemp\" RENAME TO \"sponsorTimes\"; COMMIT; VACUUM \"sponsorTimes\";");
                                     if result.is_err() {
                                         eprintln!("Failed to import database: {}", result.err().unwrap());
                                     }
