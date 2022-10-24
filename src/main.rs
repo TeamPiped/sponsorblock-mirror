@@ -72,12 +72,17 @@ fn rocket() -> Rocket<Build> {
                                 println!("Importing database...");
                                 // Execute a query of some kind
                                 db.run(move |c| {
-                                    let result = c.batch_execute("BEGIN; DROP TABLE IF EXISTS \"sponsorTimesTemp\"; CREATE UNLOGGED TABLE \"sponsorTimesTemp\"(LIKE \"sponsorTimes\" INCLUDING defaults INCLUDING constraints INCLUDING indexes); COPY \"sponsorTimesTemp\" FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER; DROP TABLE \"sponsorTimes\"; ALTER TABLE \"sponsorTimesTemp\" RENAME TO \"sponsorTimes\"; COMMIT; VACUUM \"sponsorTimes\";");
+                                    let result = c.batch_execute("BEGIN; DROP TABLE IF EXISTS \"sponsorTimesTemp\"; CREATE UNLOGGED TABLE \"sponsorTimesTemp\"(LIKE \"sponsorTimes\" INCLUDING defaults INCLUDING constraints INCLUDING indexes); COPY \"sponsorTimesTemp\" FROM '/mirror/sponsorTimes.csv' DELIMITER ',' CSV HEADER; DROP TABLE \"sponsorTimes\"; ALTER TABLE \"sponsorTimesTemp\" RENAME TO \"sponsorTimes\"; COMMIT;");
                                     if result.is_err() {
                                         eprintln!("Failed to import database: {}", result.err().unwrap());
                                     }
+                                    println!("Imported database in {}ms", start.elapsed().as_millis());
+                                    // Vacuum the database
+                                    let result = c.batch_execute("VACUUM \"sponsorTimes\";");
+                                    if result.is_err() {
+                                        eprintln!("Failed to vacuum database: {}", result.err().unwrap());
+                                    }
                                 }).await;
-                                println!("Imported database in {}ms", start.elapsed().as_millis());
 
                                 unsafe {
                                     LAST_UPDATE = Some(last_modified);
