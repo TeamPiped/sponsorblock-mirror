@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Sponsor {
     pub hash: String,
     #[serde(rename = "videoID")]
@@ -8,7 +8,7 @@ pub struct Sponsor {
     pub segments: Vec<Segment>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Segment {
     #[serde(rename = "UUID")]
     pub uuid: String,
@@ -23,4 +23,10 @@ pub struct Segment {
     #[serde(rename = "videoDuration")]
     pub video_duration: f32,
     pub votes: i32,
+}
+
+impl PartialEq for Segment {
+    fn eq(&self, other: &Self) -> bool {
+        self.uuid == other.uuid
+    }
 }
