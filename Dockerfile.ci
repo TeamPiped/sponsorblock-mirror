@@ -1,0 +1,16 @@
+FROM debian:stable-slim
+
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libssl1.1 libpq5 ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/
+
+COPY ./sponsorblock-mirror .
+COPY ./Rocket.toml .
+
+EXPOSE 8000
+
+CMD ["/app/sponsorblock-mirror"]
