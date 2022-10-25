@@ -88,7 +88,7 @@ pub async fn skip_segments(
         let mut found_similar = false;
 
         for seg in &sponsor.segments {
-            if is_overlap(&segment, &seg.category, seg.segment[0], seg.segment[1]) {
+            if is_overlap(&segment, &seg.category, &seg.action_type, seg.segment[0], seg.segment[1]) {
                 found_similar = true;
                 break;
             }
@@ -140,7 +140,7 @@ fn similar_segments(segment: &Segment, hash: &str, segments: &Vec<SponsorTime>) 
             continue;
         }
 
-        let is_similar = is_overlap(segment, &seg.category, seg.start_time, seg.end_time);
+        let is_similar = is_overlap(segment, &seg.category, &seg.action_type, seg.start_time, seg.end_time);
 
         if is_similar {
             similar_segments.push(Segment {
@@ -160,7 +160,7 @@ fn similar_segments(segment: &Segment, hash: &str, segments: &Vec<SponsorTime>) 
     similar_segments
 }
 
-fn is_overlap(seg: &Segment, cat: &str, start: f32, end: f32) -> bool {
+fn is_overlap(seg: &Segment, cat: &str, action_type: &str, start: f32, end: f32) -> bool {
     if seg.category != cat {
         return false;
     }
@@ -170,7 +170,15 @@ fn is_overlap(seg: &Segment, cat: &str, start: f32, end: f32) -> bool {
     }
     let overlap = f32::min(seg.segment[1], end) - f32::max(seg.segment[0], start);
     let duration = f32::max(seg.segment[1], end) - f32::min(seg.segment[0], start);
-    overlap / duration > 0.1
+    overlap / duration > {
+        if cat == "chapter" {
+            0.8
+        } else if seg.action_type == action_type {
+            0.6
+        } else {
+            0.1
+        }
+    }
 }
 
 fn best_segment(segments: &Vec<Segment>) -> Segment {
