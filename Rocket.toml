@@ -1,5 +1,6 @@
 [release]
 address = "0.0.0.0"
+log_level = "off"
 
 [debug.databases]
 sponsorblock = { url = "postgresql://sponsorblock:password123@localhost" }
