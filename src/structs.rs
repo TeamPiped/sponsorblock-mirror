@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -28,5 +29,11 @@ pub struct Segment {
 impl PartialEq for Segment {
     fn eq(&self, other: &Self) -> bool {
         self.uuid == other.uuid
+    }
+}
+
+impl PartialOrd for Segment {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.segment[0].partial_cmp(&other.segment[0])
     }
 }

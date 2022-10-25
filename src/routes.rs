@@ -109,6 +109,10 @@ pub async fn skip_segments(
         }
     }
 
+    for sponsor in sponsors.values_mut() {
+        sponsor.segments.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    }
+
     if !sponsors.is_empty() {
         let sponsors: Vec<&Sponsor> = sponsors.values().collect();
         return content::RawJson(serde_json::to_string(&sponsors).unwrap());
