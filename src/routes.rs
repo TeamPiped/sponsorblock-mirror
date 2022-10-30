@@ -6,12 +6,33 @@ use rocket::response::content;
 
 use crate::{Db, Segment, Sponsor};
 use crate::models::SponsorTime;
-use crate::schema::sponsorTimes::dsl::*;
+// We *must* use "videoID" as an argument name to get Rocket to let us access
+// the query parameter by that name, but if videoID is already used we
+// can't do that.
+use crate::schema::sponsorTimes::dsl::{
+    sponsorTimes,
+    shadowHidden,
+    hidden,
+    votes,
+    category,
+    hashedVideoID,
+    videoID as column_videoID
+};
 
-// init regex to match hash/hex
+// init regexes to match hash/hex or video ID
 lazy_static! {
-    static ref RE: regex::Regex = regex::Regex::new(r"^[0-9a-f]{4}$").unwrap();
+    static ref HASH_RE: regex::Regex = regex::Regex::new(r"^[0-9a-f]{4}$").unwrap();
+    static ref ID_RE: regex::Regex = regex::Regex::new(r"^[a-zA-Z0-9_-]{6,11}$").unwrap();
 }
+
+// Segments can be fetched either by full video ID, or by prefix of hashed
+// video ID. Different clients make different queries. This represents either
+// kind of constraint.
+enum VideoName {
+    ByHashPrefix(String),
+    ByID(String),
+}
+
 
 #[get("/api/skipSegments/<hash>?<categories>")]
 pub async fn skip_segments(
@@ -19,38 +40,101 @@ pub async fn skip_segments(
     categories: Option<&str>,
     db: Db,
 ) -> content::RawJson<String> {
+
     let hash = hash.to_lowercase();
 
     // Check if hash matches hex regex
-    if !RE.is_match(&hash) {
+    if !HASH_RE.is_match(&hash) {
         return content::RawJson("Hash prefix does not match format requirements.".to_string());
     }
 
-    let hc = hash.clone();
+    let search_result = find_skip_segments(VideoName::ByHashPrefix(hash.clone()), categories, db).await;
+    
+    match search_result {
+        Some(segments) => return segments,
+        None => {
+            // Fall back to central Sponsorblock server
+            let resp = reqwest::get(format!(
+                "https://sponsor.ajay.app/api/skipSegments/{}?categories={}",
+                hash,
+                categories.unwrap_or("[]"),
+            ))
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap();
+
+            return content::RawJson(resp);
+        }
+    }
+}
+
+#[get("/api/skipSegments?<videoID>&<categories>")]
+pub async fn skip_segments_by_id(
+    #[allow(non_snake_case)]
+    videoID: String,
+    categories: Option<&str>,
+    db: Db,
+) -> content::RawJson<String> {
+
+    if videoID.is_empty()  {
+        return content::RawJson("videoID is missing".to_string());
+    }
+
+    let search_result = find_skip_segments(VideoName::ByID(videoID.clone()), categories, db).await;
+    
+    match search_result {
+        Some(segments) => return segments,
+        None => {
+            // Fall back to central Sponsorblock server
+            let resp = reqwest::get(format!(
+                "https://sponsor.ajay.app/api/skipSegments?videoID={}&categories={}",
+                videoID,
+                categories.unwrap_or("[]"),
+            ))
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap();
+
+            return content::RawJson(resp);
+        }
+    }
+}
+
+async fn find_skip_segments(
+    name: VideoName,
+    categories: Option<&str>,
+    db: Db,
+) -> Option<content::RawJson<String>> {
 
     let cat: Vec<String> = serde_json::from_str(categories.unwrap_or("[\"sponsor\"]")).unwrap();
 
     if cat.is_empty() {
-        return content::RawJson(
+        return Some(content::RawJson(
             "[]".to_string(),
-        );
+        ));
     }
-
+    
     let results: Vec<SponsorTime> = db.run(move |conn| {
         let base_filter = sponsorTimes
             .filter(shadowHidden.eq(0))
             .filter(hidden.eq(0))
             .filter(votes.ge(0))
-            .filter(hashedVideoID.like(format!("{}%", hc)));
-
-        let queried = {
-            if cat.is_empty() {
+            .filter(category.eq_any(cat)); // We know cat isn't empty at this point
+        
+        let queried = match name {
+            VideoName::ByHashPrefix(hash_prefix) => {
                 base_filter
+                    .filter(hashedVideoID.like(format!("{}%", hash_prefix)))
                     .get_results::<SponsorTime>(conn)
                     .expect("Failed to query sponsor times")
-            } else {
+            }
+            VideoName::ByID(video_id) => {
                 base_filter
-                    .filter(category.eq_any(cat))
+                    .filter(column_videoID.eq(video_id))
                     .get_results::<SponsorTime>(conn)
                     .expect("Failed to query sponsor times")
             }
@@ -115,21 +199,10 @@ pub async fn skip_segments(
 
     if !sponsors.is_empty() {
         let sponsors: Vec<&Sponsor> = sponsors.values().collect();
-        return content::RawJson(serde_json::to_string(&sponsors).unwrap());
+        return Some(content::RawJson(serde_json::to_string(&sponsors).unwrap()));
     }
 
-    let resp = reqwest::get(format!(
-        "https://sponsor.ajay.app/api/skipSegments/{}?categories={}",
-        hash,
-        categories.unwrap_or("[]"),
-    ))
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-
-    return content::RawJson(resp);
+    return None;
 }
 
 fn similar_segments(segment: &Segment, hash: &str, segments: &Vec<SponsorTime>) -> Vec<Segment> {
@@ -197,4 +270,20 @@ fn best_segment(segments: &Vec<Segment>) -> Segment {
     }
 
     best_segment
+}
+
+// We might need some more routes to support ReVanced. These are faked for now.
+// Sadly not even these are sufficient to make it work for me, maybe it is just
+// broken?
+
+// This would take a userID
+#[get("/api/isUserVIP")]
+pub async fn fake_is_user_vip() -> content::RawJson<String> {
+    content::RawJson("{\"hashedUserID\": \"\", \"vip\": false}".to_string())
+}
+
+// This would take a userID and an optional list values
+#[get("/api/userInfo")]
+pub async fn fake_user_info() -> content::RawJson<String> {
+    content::RawJson("{\"userID\": \"\", \"userName\": \"\", \"minutesSaved\": 0, \"segmentCount\": 0, \"viewCount\": 0}".to_string())
 }

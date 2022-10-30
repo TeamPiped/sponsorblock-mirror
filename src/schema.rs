@@ -1,6 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    #[allow(non_snake_case)]
     sponsorTimes (UUID) {
         videoID -> Text,
         startTime -> Float4,
