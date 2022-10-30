@@ -47,7 +47,7 @@ docker buildx build --load -t 1337kavin/sponsorblock-mirror .
 
 * If Docker complains that `the --mount option requires BuildKit`, make sure you are building with `docker buildx build` and not `docker build`.
 
-* To access the PosgresQL database directly, you can `docker exec -ti postgres-sb-mirror bash -c 'psql $POSTGRES_DB $POSTGRES_USER'`.
+* To access the PostgreSQL database directly, you can `docker exec -ti postgres-sb-mirror bash -c 'psql $POSTGRES_DB $POSTGRES_USER'`.
 
 * Requests for videos not in the database are forwarded to `https://sponsor.ajay.app/`, which may be down or malfunctioning. A response of the string `Internal Server Error` is likely to be from there, rather than from this application.
 
