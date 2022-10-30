@@ -77,8 +77,9 @@ pub async fn skip_segments_by_id(
     db: Db,
 ) -> content::RawJson<String> {
 
-    if videoID.is_empty()  {
-        return content::RawJson("videoID is missing".to_string());
+    // Check if ID matches ID regex
+    if !ID_RE.is_match(&videoID) {
+        return content::RawJson("videoID does not match format requirements".to_string());
     }
 
     let sponsors = find_skip_segments(VideoName::ByID(videoID.clone()), categories, db).await;
