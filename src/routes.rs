@@ -48,26 +48,25 @@ pub async fn skip_segments(
         return content::RawJson("Hash prefix does not match format requirements.".to_string());
     }
 
-    let search_result = find_skip_segments(VideoName::ByHashPrefix(hash.clone()), categories, db).await;
+    let sponsors = find_skip_segments(VideoName::ByHashPrefix(hash.clone()), categories, db).await;
     
-    match search_result {
-        Some(segments) => return segments,
-        None => {
-            // Fall back to central Sponsorblock server
-            let resp = reqwest::get(format!(
-                "https://sponsor.ajay.app/api/skipSegments/{}?categories={}",
-                hash,
-                categories.unwrap_or("[]"),
-            ))
-                .await
-                .unwrap()
-                .text()
-                .await
-                .unwrap();
+    if sponsors.is_empty() {
+        // Fall back to central Sponsorblock server
+        let resp = reqwest::get(format!(
+            "https://sponsor.ajay.app/api/skipSegments/{}?categories={}",
+            hash,
+            categories.unwrap_or("[]"),
+        ))
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
 
-            return content::RawJson(resp);
-        }
+        return content::RawJson(resp);
     }
+    
+    return content::RawJson(serde_json::to_string(&sponsors).unwrap());
 }
 
 #[get("/api/skipSegments?<videoID>&<categories>")]
@@ -82,40 +81,39 @@ pub async fn skip_segments_by_id(
         return content::RawJson("videoID is missing".to_string());
     }
 
-    let search_result = find_skip_segments(VideoName::ByID(videoID.clone()), categories, db).await;
+    let sponsors = find_skip_segments(VideoName::ByID(videoID.clone()), categories, db).await;
     
-    match search_result {
-        Some(segments) => return segments,
-        None => {
-            // Fall back to central Sponsorblock server
-            let resp = reqwest::get(format!(
-                "https://sponsor.ajay.app/api/skipSegments?videoID={}&categories={}",
-                videoID,
-                categories.unwrap_or("[]"),
-            ))
-                .await
-                .unwrap()
-                .text()
-                .await
-                .unwrap();
+    if sponsors.is_empty() {
+        // Fall back to central Sponsorblock server
+        let resp = reqwest::get(format!(
+            "https://sponsor.ajay.app/api/skipSegments?videoID={}&categories={}",
+            videoID,
+            categories.unwrap_or("[]"),
+        ))
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
 
-            return content::RawJson(resp);
-        }
+        return content::RawJson(resp);
     }
+    
+    // Doing a lookup by video ID should return only one Sponsor object with
+    // one list of segments. We need to return just the list of segments.
+    return content::RawJson(serde_json::to_string(&sponsors[0].segments).unwrap());
 }
 
 async fn find_skip_segments(
     name: VideoName,
     categories: Option<&str>,
     db: Db,
-) -> Option<content::RawJson<String>> {
+) -> Vec<Sponsor> {
 
     let cat: Vec<String> = serde_json::from_str(categories.unwrap_or("[\"sponsor\"]")).unwrap();
 
     if cat.is_empty() {
-        return Some(content::RawJson(
-            "[]".to_string(),
-        ));
+        return Vec::new(); 
     }
     
     let results: Vec<SponsorTime> = db.run(move |conn| {
@@ -196,13 +194,8 @@ async fn find_skip_segments(
     for sponsor in sponsors.values_mut() {
         sponsor.segments.sort_by(|a, b| a.partial_cmp(b).unwrap());
     }
-
-    if !sponsors.is_empty() {
-        let sponsors: Vec<&Sponsor> = sponsors.values().collect();
-        return Some(content::RawJson(serde_json::to_string(&sponsors).unwrap()));
-    }
-
-    return None;
+    
+    return sponsors.into_values().collect();
 }
 
 fn similar_segments(segment: &Segment, hash: &str, segments: &Vec<SponsorTime>) -> Vec<Segment> {
@@ -272,9 +265,9 @@ fn best_segment(segments: &Vec<Segment>) -> Segment {
     best_segment
 }
 
-// We might need some more routes to support ReVanced. These are faked for now.
-// Sadly not even these are sufficient to make it work for me, maybe it is just
-// broken?
+// These additional routes are faked to protect ReVanced from seeing errors. We
+// don't *need* to do this to support ReVanced, but it gets rid of the
+// perpetual "Loading..." in the settings.
 
 // This would take a userID
 #[get("/api/isUserVIP")]
