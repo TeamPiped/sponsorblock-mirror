@@ -20,15 +20,6 @@ This implementation does not implement the full SponsorBlock server API. It supp
 
 The browser extension works with only the hash-based query endpoint, but other clients, such as the one in ReVanced, require the video ID endpoint, and additionally query `/api/userInfo` and `/api/isUserVip`. Right now there are stub implementations for these. ReVanced had not yet been verified as compatible.
 
-## Building
-
-To make a local release build, use `cargo build --release`. This will produce a binary in `target/release/sponsorblock-mirror`.
-
-To make a Docker container, you need to do a BuildKit Docker build, not a normal Docker build. Make sure you have `buildx` available in your Docker, and run:
-```bash
-docker buildx build --load -t 1337kavin/sponsorblock-mirror .
-```
-
 ## Using with Docker Compose
 
 To run the server under Docker Compose, run:
@@ -40,6 +31,15 @@ docker compose up
 This starts the API server, a database, and a mirroring service to download the SponsorBlock data from the `sponsorblock.kavin.rocks` mirror and keep it up to date.
 
 The API will be available on `http://localhost:8000`. For example, you can try `http://localhost:8000/api/skipSegments/aabf` or `http://localhost:8000/api/skipSegments?videoID=eQ_8F4nzyiw`. **It will take a few minutes at least for the database to download and import,** so these will not return data on the first run.
+
+## Building
+
+To make a local release build, use `cargo build --release`. This will produce a binary in `target/release/sponsorblock-mirror`.
+
+To make a Docker container, you need to do a BuildKit Docker build, not a normal Docker build. Make sure you have `buildx` available in your Docker, and run:
+```bash
+docker buildx build --load -t 1337kavin/sponsorblock-mirror .
+```
 
 ## Troubleshooting
 
