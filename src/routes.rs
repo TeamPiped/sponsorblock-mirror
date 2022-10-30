@@ -49,7 +49,7 @@ pub async fn skip_segments(
     }
 
     let sponsors = find_skip_segments(VideoName::ByHashPrefix(hash.clone()), categories, db).await;
-    
+
     if sponsors.is_empty() {
         // Fall back to central Sponsorblock server
         let resp = reqwest::get(format!(
@@ -65,7 +65,7 @@ pub async fn skip_segments(
 
         return content::RawJson(resp);
     }
-    
+
     return content::RawJson(serde_json::to_string(&sponsors).unwrap());
 }
 
@@ -82,7 +82,7 @@ pub async fn skip_segments_by_id(
     }
 
     let sponsors = find_skip_segments(VideoName::ByID(videoID.clone()), categories, db).await;
-    
+
     if sponsors.is_empty() {
         // Fall back to central Sponsorblock server
         let resp = reqwest::get(format!(
@@ -98,7 +98,7 @@ pub async fn skip_segments_by_id(
 
         return content::RawJson(resp);
     }
-    
+
     // Doing a lookup by video ID should return only one Sponsor object with
     // one list of segments. We need to return just the list of segments.
     return content::RawJson(serde_json::to_string(&sponsors[0].segments).unwrap());
@@ -113,16 +113,16 @@ async fn find_skip_segments(
     let cat: Vec<String> = serde_json::from_str(categories.unwrap_or("[\"sponsor\"]")).unwrap();
 
     if cat.is_empty() {
-        return Vec::new(); 
+        return Vec::new();
     }
-    
+
     let results: Vec<SponsorTime> = db.run(move |conn| {
         let base_filter = sponsorTimes
             .filter(shadowHidden.eq(0))
             .filter(hidden.eq(0))
             .filter(votes.ge(0))
             .filter(category.eq_any(cat)); // We know cat isn't empty at this point
-        
+
         let queried = match name {
             VideoName::ByHashPrefix(hash_prefix) => {
                 base_filter
@@ -194,7 +194,7 @@ async fn find_skip_segments(
     for sponsor in sponsors.values_mut() {
         sponsor.segments.sort_by(|a, b| a.partial_cmp(b).unwrap());
     }
-    
+
     return sponsors.into_values().collect();
 }
 
