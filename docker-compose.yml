@@ -39,3 +39,4 @@ services:
       - sb-mirror
 volumes:
   postgres_data: null
+version: "3"
