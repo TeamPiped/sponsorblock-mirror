@@ -14,7 +14,7 @@ use tokio::time::interval;
 
 use structs::{Segment, Sponsor};
 
-use crate::routes::skip_segments;
+use crate::routes::{skip_segments, skip_segments_by_id, fake_is_user_vip, fake_user_info};
 
 mod models;
 mod routes;
@@ -125,5 +125,5 @@ fn rocket() -> Rocket<Build> {
             })
         })
         ).attach(CORS)
-        .mount("/", routes![skip_segments])
+        .mount("/", routes![skip_segments, skip_segments_by_id, fake_is_user_vip, fake_user_info])
 }

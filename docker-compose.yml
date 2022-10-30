@@ -1,3 +1,5 @@
+version: "3"
+
 services:
   sb-mirror:
     image: mchangrh/sb-mirror:latest
