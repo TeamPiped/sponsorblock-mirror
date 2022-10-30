@@ -43,7 +43,7 @@ docker buildx build --load -t 1337kavin/sponsorblock-mirror .
 
 ## Troubleshooting
 
-* If the linker complains about a missing `-lpq`, make sure you have the PostgresQL development libraries, which may be in a `libpq-dev` package or your distribution's equivalent.
+* If the linker complains about a missing `-lpq`, make sure you have the PostgreSQL development libraries, which may be in a `libpq-dev` package or your distribution's equivalent.
 
 * If Docker complains that `the --mount option requires BuildKit`, make sure you are building with `docker buildx build` and not `docker build`.
 
