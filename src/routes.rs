@@ -55,7 +55,7 @@ pub async fn skip_segments(
         let resp = reqwest::get(format!(
             "https://sponsor.ajay.app/api/skipSegments/{}?categories={}",
             hash,
-            categories.unwrap_or("[]"),
+            categories.unwrap_or("[\"sponsor\"]"),
         ))
             .await
             .unwrap()
@@ -89,7 +89,7 @@ pub async fn skip_segments_by_id(
         let resp = reqwest::get(format!(
             "https://sponsor.ajay.app/api/skipSegments?videoID={}&categories={}",
             videoID,
-            categories.unwrap_or("[]"),
+            categories.unwrap_or("[\"sponsor\"]"),
         ))
             .await
             .unwrap()
@@ -154,17 +154,7 @@ async fn find_skip_segments(
             })
         };
 
-        let segment = Segment {
-            uuid: result.uuid.clone(),
-            action_type: result.action_type.clone(),
-            category: result.category.clone(),
-            description: result.description.clone(),
-            locked: result.locked,
-            segment: vec![result.start_time, result.end_time],
-            user_id: result.user_id.clone(),
-            video_duration: result.video_duration,
-            votes: result.votes,
-        };
+        let segment = build_segment(result);
 
         let hash = result.hashed_video_id.clone();
 
@@ -214,17 +204,7 @@ fn similar_segments(segment: &Segment, hash: &str, segments: &Vec<SponsorTime>) 
         let is_similar = is_overlap(segment, &seg.category, &seg.action_type, seg.start_time, seg.end_time);
 
         if is_similar {
-            similar_segments.push(Segment {
-                uuid: seg.uuid.clone(),
-                action_type: seg.action_type.clone(),
-                category: seg.category.clone(),
-                description: seg.description.clone(),
-                locked: seg.locked,
-                segment: vec![seg.start_time, seg.end_time],
-                user_id: seg.user_id.clone(),
-                video_duration: seg.video_duration,
-                votes: seg.votes,
-            });
+            similar_segments.push(build_segment(seg));
         }
     }
 
@@ -264,6 +244,20 @@ fn best_segment(segments: &Vec<Segment>) -> Segment {
     }
 
     best_segment
+}
+
+fn build_segment (sponsor_time: &SponsorTime) -> Segment {
+    Segment {
+        uuid: sponsor_time.uuid.clone(),
+        action_type: sponsor_time.action_type.clone(),
+        category: sponsor_time.category.clone(),
+        description: sponsor_time.description.clone(),
+        locked: sponsor_time.locked,
+        segment: vec![sponsor_time.start_time, sponsor_time.end_time],
+        user_id: sponsor_time.user_id.clone(),
+        video_duration: sponsor_time.video_duration,
+        votes: sponsor_time.votes,
+    }
 }
 
 // These additional routes are faked to protect ReVanced from seeing errors. We
