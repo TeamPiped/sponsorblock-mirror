@@ -15,6 +15,7 @@ services:
     image: postgres:15-alpine
     container_name: postgres-sb-mirror
     shm_size: 1g
+    user: 0:0
     # ports:
     #   - 5432:5432
     volumes:
