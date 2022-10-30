@@ -55,8 +55,6 @@ The API will be available on `http://localhost:8000`. For example, you can try `
   ```
   then you are using an old version of `docker compose` which does not fully support the Compose Specification and [requires a 'version' key to differentiate the file from a V1 compose file](https://docs.docker.com/compose/compose-file/#version-top-level-element). Try appending `version: "3"` to the file.
 
-* On the first run of `docker compose`, even after the database files are downloaded, you may see errors like `could not open file "/mirror/sponsorTimes.csv" for reading: Permission denied`. Assuming the permissions on the `.csv` files are actually set to be world-readable, you might be able to fix this by stopping and restarting `docker compose`.
-
 * To access the PosgresQL database directly, you can `docker exec -ti postgres-sb-mirror bash -c 'psql $POSTGRES_DB $POSTGRES_USER'`.
 
 * Requests for videos not in the database are forwarded to `https://sponsor.ajay.app/`, which may be down or malfunctioning. A response of the string `Internal Server Error` is likely to be from there, rather than from this application.
