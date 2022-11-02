@@ -12,9 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
-      - name: Build Cargo
-        run: cargo build --release && mv target/release/sponsorblock-mirror .
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -33,8 +30,8 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./Dockerfile.ci
-          platforms: linux/amd64
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: 1337kavin/sponsorblock-mirror:latest
           cache-from: type=gha
