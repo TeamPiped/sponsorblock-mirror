@@ -10,13 +10,13 @@ use crate::models::SponsorTime;
 // the query parameter by that name, but if videoID is already used we
 // can't do that.
 use crate::schema::sponsorTimes::dsl::{
-    sponsorTimes,
-    shadowHidden,
-    hidden,
-    votes,
     category,
     hashedVideoID,
-    videoID as column_videoID
+    hidden,
+    shadowHidden,
+    sponsorTimes,
+    videoID as column_videoID,
+    votes,
 };
 
 // init regexes to match hash/hex or video ID
@@ -40,7 +40,6 @@ pub async fn skip_segments(
     categories: Option<&str>,
     db: Db,
 ) -> content::RawJson<String> {
-
     let hash = hash.to_lowercase();
 
     // Check if hash matches hex regex
@@ -66,7 +65,7 @@ pub async fn skip_segments(
         return content::RawJson(resp);
     }
 
-    return content::RawJson(serde_json::to_string(&sponsors).unwrap());
+    content::RawJson(serde_json::to_string(&sponsors).unwrap())
 }
 
 #[get("/api/skipSegments?<videoID>&<categories>")]
@@ -102,7 +101,7 @@ pub async fn skip_segments_by_id(
 
     // Doing a lookup by video ID should return only one Sponsor object with
     // one list of segments. We need to return just the list of segments.
-    return content::RawJson(serde_json::to_string(&sponsors[0].segments).unwrap());
+    content::RawJson(serde_json::to_string(&sponsors[0].segments).unwrap())
 }
 
 async fn find_skip_segments(
@@ -110,7 +109,6 @@ async fn find_skip_segments(
     categories: Option<&str>,
     db: Db,
 ) -> Vec<Sponsor> {
-
     let cat: Vec<String> = serde_json::from_str(categories.unwrap_or("[\"sponsor\"]")).unwrap();
 
     if cat.is_empty() {
@@ -124,7 +122,7 @@ async fn find_skip_segments(
             .filter(votes.ge(0))
             .filter(category.eq_any(cat)); // We know cat isn't empty at this point
 
-        let queried = match name {
+        match name {
             VideoName::ByHashPrefix(hash_prefix) => {
                 base_filter
                     .filter(hashedVideoID.like(format!("{}%", hash_prefix)))
@@ -137,9 +135,7 @@ async fn find_skip_segments(
                     .get_results::<SponsorTime>(conn)
                     .expect("Failed to query sponsor times")
             }
-        };
-
-        queried
+        }
     }).await;
 
     // Create map of Sponsors - Hash, Sponsor
@@ -186,7 +182,7 @@ async fn find_skip_segments(
         sponsor.segments.sort_by(|a, b| a.partial_cmp(b).unwrap());
     }
 
-    return sponsors.into_values().collect();
+    sponsors.into_values().collect()
 }
 
 fn similar_segments(segment: &Segment, hash: &str, segments: &Vec<SponsorTime>) -> Vec<Segment> {
@@ -246,7 +242,7 @@ fn best_segment(segments: &Vec<Segment>) -> Segment {
     best_segment
 }
 
-fn build_segment (sponsor_time: &SponsorTime) -> Segment {
+fn build_segment(sponsor_time: &SponsorTime) -> Segment {
     Segment {
         uuid: sponsor_time.uuid.clone(),
         action_type: sponsor_time.action_type.clone(),
