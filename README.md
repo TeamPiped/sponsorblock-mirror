@@ -9,6 +9,7 @@ It also uses [sb-mirror](https://github.com/mchangrh/sb-mirror) for mirroring th
 -   [sponsorblock.kavin.rocks](https://sponsorblock.kavin.rocks) - 🇩🇪 (main instance)
 -   [sponsorblock.gleesh.net](https://sponsorblock.gleesh.net) - 🇩🇪
 -   [sb.theairplan.com](https://sb.theairplan.com) - 🇺🇸
+-   [sponsorblock.2255.me](https://sponsorblock.2255.me) - 🇵🇱
 
 Feel free to add your instance to this list by making a pull request.
 
