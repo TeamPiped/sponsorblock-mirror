@@ -12,7 +12,7 @@ diesel_migrations = "2.0.0"
 lazy_static = "1.4.0"
 num_cpus = "1.15.0"
 regex = "1.8.1"
-reqwest = {version = "0.11.17", features = ["json", "rustls-tls", "gzip", "brotli"], default-features = false}
+reqwest = {version = "0.11.18", features = ["json", "rustls-tls", "gzip", "brotli"], default-features = false}
 rocket = {git = "https://github.com/SergioBenitez/Rocket"}
 rocket_sync_db_pools = {git = "https://github.com/SergioBenitez/Rocket", features = ["diesel_postgres_pool"]}
 serde = {version = "1.0.163", features = ["derive"]}
