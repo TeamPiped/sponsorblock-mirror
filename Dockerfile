@@ -20,7 +20,7 @@ FROM debian:stable-slim
 RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    libssl1.1 libpq5 ca-certificates && \
+    libpq5 ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/
