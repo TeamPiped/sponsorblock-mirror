@@ -2,19 +2,22 @@
 extern crate rocket;
 
 use std::path::Path;
+use std::sync::Arc;
 use std::thread::sleep;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use diesel::connection::SimpleConnection;
-use rocket::{Build, Request, Response, Rocket};
+use once_cell::sync::Lazy;
 use rocket::fairing::{AdHoc, Fairing, Info, Kind};
 use rocket::http::Header;
+use rocket::{Build, Request, Response, Rocket};
 use rocket_sync_db_pools::database;
+use tokio::sync::Mutex;
 use tokio::time::interval;
 
 use structs::{Segment, Sponsor};
 
-use crate::routes::{skip_segments, skip_segments_by_id, fake_is_user_vip, fake_user_info};
+use crate::routes::{fake_is_user_vip, fake_user_info, skip_segments, skip_segments_by_id};
 
 mod models;
 mod routes;
@@ -34,7 +37,8 @@ async fn run_migrations(rocket: Rocket<Build>) -> Rocket<Build> {
         .run(|c| {
             MigrationHarness::run_pending_migrations(c, MIGRATIONS)
                 .expect("Failed to run migrations");
-        }).await;
+        })
+        .await;
 
     rocket
 }
@@ -52,7 +56,10 @@ impl Fairing for CORS {
 
     async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
+        response.set_header(Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
         if request.method() == rocket::http::Method::Options {
@@ -62,7 +69,8 @@ impl Fairing for CORS {
     }
 }
 
-static mut LAST_UPDATE: Option<SystemTime> = None;
+static LAST_UPDATE: Lazy<Arc<Mutex<SystemTime>>> =
+    Lazy::new(|| Arc::new(Mutex::new(SystemTime::UNIX_EPOCH)));
 
 #[launch]
 fn rocket() -> Rocket<Build> {
@@ -80,16 +88,17 @@ fn rocket() -> Rocket<Build> {
                 tokio::spawn(async move {
                     loop {
                         interval.tick().await;
-                        let last_update = unsafe { LAST_UPDATE };
+                        let mut lock_guard = LAST_UPDATE.lock().await;
+                        let locked_last_updated_time = &mut *lock_guard;
 
                         // see if file exists
-                        if path.exists() && (last_update.is_none() || last_update.unwrap().elapsed().unwrap_or_default().as_secs() > 60) {
+                        if path.exists() && (*locked_last_updated_time == UNIX_EPOCH || locked_last_updated_time.elapsed().unwrap_or_default().as_secs() > 60) {
 
                             // Check last modified time
                             let last_modified = path.metadata().unwrap().modified().unwrap();
 
                             // Check if file was modified since last update
-                            if last_update.is_none() || last_modified > last_update.unwrap() {
+                            if *locked_last_updated_time == UNIX_EPOCH || last_modified > *locked_last_updated_time {
 
                                 // Use COPY FROM to import the CSV file
                                 let start = Instant::now();
@@ -114,7 +123,7 @@ fn rocket() -> Rocket<Build> {
                                 }).await;
 
                                 if res {
-                                    unsafe { LAST_UPDATE = Some(last_modified) };
+                                    *LAST_UPDATE.lock().await = last_modified;
                                 }
                             }
 
