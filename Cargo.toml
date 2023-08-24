@@ -16,6 +16,6 @@ regex = "1.9.3"
 reqwest = {version = "0.11.20", features = ["json", "rustls-tls", "gzip", "brotli"], default-features = false}
 rocket = {git = "https://github.com/SergioBenitez/Rocket"}
 rocket_sync_db_pools = {git = "https://github.com/SergioBenitez/Rocket", features = ["diesel_postgres_pool"]}
-serde = {version = "1.0.185", features = ["derive"]}
+serde = {version = "1.0.186", features = ["derive"]}
 serde_json = "1.0.105"
 tokio = {version = "1", features = ["full"]}
