@@ -7,7 +7,6 @@ version = "0.1.0"
 
 [dependencies]
 diesel = {version = "2.1.6", features = ["postgres"]}
-diesel_logger = "0.3.0"
 diesel_migrations = "2.1.0"
 lazy_static = "1.4.0"
 num_cpus = "1.16.0"
