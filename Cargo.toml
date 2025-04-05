@@ -17,4 +17,4 @@ rocket = {git = "https://github.com/SergioBenitez/Rocket"}
 rocket_sync_db_pools = {git = "https://github.com/SergioBenitez/Rocket", features = ["diesel_postgres_pool"]}
 serde = {version = "1.0.219", features = ["derive"]}
 serde_json = "1.0.140"
-tokio = {version = "1.44.1", features = ["full"]}
+tokio = {version = "1.44.2", features = ["full"]}
