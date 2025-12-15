@@ -12,7 +12,7 @@ lazy_static = "1.5.0"
 num_cpus = "1.17.0"
 once_cell = "1.21.3"
 regex = "1.12.2"
-reqwest = {version = "0.12.25", features = ["json", "rustls-tls", "gzip", "brotli"], default-features = false}
+reqwest = {version = "0.12.26", features = ["json", "rustls-tls", "gzip", "brotli"], default-features = false}
 rocket = {git = "https://github.com/SergioBenitez/Rocket"}
 rocket_sync_db_pools = {git = "https://github.com/SergioBenitez/Rocket", features = ["diesel_postgres_pool"]}
 serde = {version = "1.0.228", features = ["derive"]}
