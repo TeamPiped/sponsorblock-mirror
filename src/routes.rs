@@ -21,7 +21,7 @@ use crate::schema::sponsorTimes::dsl::{
 
 // init regexes to match hash/hex or video ID
 lazy_static! {
-    static ref HASH_RE: regex::Regex = regex::Regex::new(r"^[0-9a-f]{4}$").unwrap();
+    static ref HASH_RE: regex::Regex = regex::Regex::new(r"^[0-9a-f]{3,32}$").unwrap();
     static ref ID_RE: regex::Regex = regex::Regex::new(r"^[a-zA-Z0-9_-]{6,11}$").unwrap();
 }
 
