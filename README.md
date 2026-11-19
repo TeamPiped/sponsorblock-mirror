@@ -10,6 +10,7 @@ It also uses [sb-mirror](https://github.com/mchangrh/sb-mirror) for mirroring th
 -   [sponsorblock.gleesh.net](https://sponsorblock.gleesh.net) - 🇩🇪
 -   [sponsorblock.2255.me](https://sponsorblock.2255.me) - 🇵🇱
 -   [sponsorblock.hostux.net](https://sponsorblock.hostux.net) - :fr:
+-   [sb.cidr.sh](https://sb.cidr.sh) - 🇳🇿
 
 Feel free to add your instance to this list by making a pull request.
 
